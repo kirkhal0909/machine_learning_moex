@@ -23,7 +23,7 @@ class MOEX():
     def __init__(self) -> None:
       self.__cache__ = self.read_cache()
 
-    def stock_list(self, params = {}):
+    def stocks_prices_today(self, params = {}):
       return self.get(self.STOCKS_LIST_URL, params)
     
     def stock_prices(self, security, params = {}):
@@ -37,6 +37,9 @@ class MOEX():
     
     def securities_list(self, index):
       return self.get(self.TICKERS_BY_INDEX.format(index), { 'date': minus_today(1) })
+    
+    def prices_today(self):
+      return self.get()
     
     def get(self, link, params = {}):
       response = self.fetch_cache(link, params)
@@ -75,6 +78,23 @@ class MOEX():
     def __init__(self, client):
       self.client = client
       self.__cache__ = {}
+
+    def today_prices(self):
+      data_info = self.get_data(self.client.stocks_prices_today(), 0)
+      data_trade = self.get_data(self.client.stocks_prices_today(), 1)
+      stocks = {}
+      pos = 0
+      while pos < len(data_info):
+        stocks[data_info[pos]['@SECID']] = {
+          'name': data_info[pos]['@SHORTNAME'],
+          'open': data_trade[pos]['@OPEN'],
+          'close': data_trade[pos]['@LAST'],
+          'high': data_trade[pos]['@HIGH'],
+          'low': data_trade[pos]['@LOW'],
+          'capitalization': data_trade[pos]['@ISSUECAPITALIZATION']
+        }
+        pos += 1
+      return stocks
 
     def moex_indexes(self):
       start = 0
