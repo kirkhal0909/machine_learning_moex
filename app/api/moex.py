@@ -108,7 +108,6 @@ class MOEX():
           tickers_data[ticker]['changes'][days] = str(self.__changes__(prices, days)) + '%'
       return tickers_data
 
-
     def moex_indexes(self):
       start = 0
       get_indexes = lambda start: self.get_data(self.client.index_list({ 'start': start, 'date': minus_today(1) }))
@@ -122,7 +121,7 @@ class MOEX():
             indexes[index] = {
               'name': block['@SHORTNAME'],
               'capitalization': capitalization,
-              'tickers': self.securities_list(index)
+              'tickers': self.stocks_prices(self.securities_list(index))
             }
         start += 100
         data = get_indexes(start)
