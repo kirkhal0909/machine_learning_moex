@@ -1,4 +1,5 @@
 from app.helpers.dates import minus_today
+from app.helpers.dictionaries import first_key
 
 class MOEXParser():
   def __init__(self, client):
@@ -30,8 +31,12 @@ class MOEXParser():
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
       tickers_data[ticker] = { 'changes': {} }
       for days in days_ranges:
-        tickers_data[ticker]['changes'][days] = str(self.__changes__(prices, days)) + '%'
-    return tickers_data
+        tickers_data[ticker]['changes'][days] = self.__changes__(prices, days)
+    return self.sort_tickers_data(tickers_data)
+  
+  def sort_tickers_data(self, tickers_data):
+    sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])] )
+    return dict(sorted_data)
 
   def moex_indexes(self):
     start = 0
@@ -59,9 +64,9 @@ class MOEXParser():
       prices = get_prices(max(days_ranges))
       indexes_dict[index]['changes'] = {}
       for days in days_ranges:
-        indexes_dict[index]['changes'][days] = str(self.__changes__(prices, days)) + '%'
+        indexes_dict[index]['changes'][days] = self.__changes__(prices, days)
     
-    return indexes_dict
+    return self.sort_tickers_data(indexes_dict)
   
   def securities_list(self, index):
     return [row['@ticker'] for row in self.get_data(self.client.securities_list(index))]
