@@ -14,6 +14,7 @@ class MOEX():
 
   class Client():
     STOCKS_LIST_URL = 'https://iss.moex.com/iss/engines/stock/markets/shares/boards/TQBR/securities'
+    STOCKS_HISTORY_URL = 'https://iss.moex.com/iss/history/engines/stock/markets/shares/boards/TQBR/securities'
     INDEXES_LIST_URL = 'https://iss.moex.com/iss/history/engines/stock/markets/index/securities'
     TICKERS_BY_INDEX = 'https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/{}/tickers'
     MOEX_NEWS_LINK = 'https://iss.moex.com/iss/sitenews.xml?start={}'
@@ -24,10 +25,10 @@ class MOEX():
       self.__cache__ = self.read_cache()
 
     def stocks_prices_today(self, params = {}):
-      return self.get(self.STOCKS_LIST_URL, params)
+      return self.get(self.STOCKS_LIST_URL, params, cache = False)
     
     def stock_prices(self, security, params = {}):
-      return self.get(self.STOCKS_LIST_URL + '/' + security, params)
+      return self.get(self.STOCKS_HISTORY_URL + '/' + security, params)
     
     def index_list(self, params = {}):
       return self.get(self.INDEXES_LIST_URL, params)
@@ -41,9 +42,9 @@ class MOEX():
     def prices_today(self):
       return self.get()
     
-    def get(self, link, params = {}):
+    def get(self, link, params = {}, cache = True):
       response = self.fetch_cache(link, params)
-      if response != None:
+      if response != None and cache:
         return response
 
       response = requests.get(link + '?' + urllib.parse.urlencode(params))
@@ -62,7 +63,7 @@ class MOEX():
       try:
         self.__cache__[minus_today(0)]
       except:
-        self.__cache__[minus_today(0)] = {}
+        self.__cache__ = { minus_today(0): {}}
       self.__cache__[minus_today(0)][link + ' + ' + params] = value
       with open(self.__FILE_CACHE__, 'wb') as handle:
         pickle.dump(self.__cache__, handle, protocol=pickle.HIGHEST_PROTOCOL)
@@ -80,8 +81,9 @@ class MOEX():
       self.__cache__ = {}
 
     def today_prices(self):
-      data_info = self.get_data(self.client.stocks_prices_today(), 0)
-      data_trade = self.get_data(self.client.stocks_prices_today(), 1)
+      response = self.client.stocks_prices_today()
+      data_info = self.get_data(response, 0)
+      data_trade = self.get_data(response, 1)
       stocks = {}
       pos = 0
       while pos < len(data_info):
@@ -91,10 +93,21 @@ class MOEX():
           'close': data_trade[pos]['@LAST'],
           'high': data_trade[pos]['@HIGH'],
           'low': data_trade[pos]['@LOW'],
+          'change': data_trade[pos]['@CHANGE'],
           'capitalization': data_trade[pos]['@ISSUECAPITALIZATION']
         }
         pos += 1
       return stocks
+    
+    def stocks_prices(self, tickers, days_ranges = [7, 14, 30, 90]):
+      tickers_data = {}
+      for ticker in tickers:
+        prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
+        tickers_data[ticker] = { 'changes': {} }
+        for days in days_ranges:
+          tickers_data[ticker]['changes'][days] = str(self.__changes__(prices, days)) + '%'
+      return tickers_data
+
 
     def moex_indexes(self):
       start = 0
