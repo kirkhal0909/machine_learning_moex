@@ -34,6 +34,11 @@ class MOEXParser():
       tickers_data[ticker] = { 'changes': {}, **self.bcs.parser.ticker_data(ticker) }
       for days in days_ranges:
         tickers_data[ticker]['changes'][days] = self.__changes__(prices, days)
+      days = first_key(tickers_data[ticker]['changes'])
+      if tickers_data[ticker].get('percent'):
+        dividend_value = round(tickers_data[ticker]['changes'][days][1] / 100 * tickers_data[ticker].get('percent'), 2)
+        tickers_data[ticker]['dividend_value'] = dividend_value
+        tickers_data[ticker]['mark_highlight'] = '✓' if dividend_value > 400_000_000 else '' 
     return self.sort_tickers_data(tickers_data)
 
   def sort_tickers_data(self, tickers_data):
