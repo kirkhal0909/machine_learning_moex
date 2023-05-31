@@ -11,9 +11,10 @@ class Message():
           message += " {}: {}% {}\n".format(day, data['changes'][day][0], Message.format_long_number(data['changes'][day][1]))
         message += '\n\n'
         for ticker in data['tickers']:
-          message += "   {}\n".format(ticker)
-          for day in data['tickers'][ticker]['changes']:
-            message += "    {}: {}% {}\n".format(day, data['tickers'][ticker]['changes'][day][0], Message.format_long_number(data['tickers'][ticker]['changes'][day][1]))
+          data_ticker = data['tickers'][ticker]
+          message += "   {}{}".format(ticker, '                     дивиденды: {}% ({})\n'.format(data_ticker.get('percent'), data_ticker.get('last_buy_day')) if data_ticker.get('percent') else '\n')
+          for day in data_ticker['changes']:
+            message += "    {}: {}% {}\n".format(day, data_ticker['changes'][day][0], Message.format_long_number(data_ticker['changes'][day][1]))
         message += '\n-----------------------'
         messages.append(message)
          

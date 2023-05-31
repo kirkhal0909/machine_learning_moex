@@ -1,9 +1,11 @@
 from app.helpers.dates import minus_today
 from app.helpers.dictionaries import first_key
+from app.api.bcs.bcs import BCS
 
 class MOEXParser():
   def __init__(self, client):
     self.client = client
+    self.bcs = BCS()
     self.__cache__ = {}
 
   def today_prices(self):
@@ -29,11 +31,11 @@ class MOEXParser():
     tickers_data = {}
     for ticker in tickers:
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
-      tickers_data[ticker] = { 'changes': {} }
+      tickers_data[ticker] = { 'changes': {}, **self.bcs.parser.ticker_data(ticker) }
       for days in days_ranges:
         tickers_data[ticker]['changes'][days] = self.__changes__(prices, days)
     return self.sort_tickers_data(tickers_data)
-  
+
   def sort_tickers_data(self, tickers_data):
     sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])][0] )
     return dict(sorted_data)

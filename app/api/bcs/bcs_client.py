@@ -7,5 +7,4 @@ class BCSClient(Client):
 
   def dividends_data(self, actual = True):
     actual_param = str(int(actual))
-    print(self.__DIVIDENDS_CALENDAR_LINK__.format(actual_param))
     return self.get(self.__DIVIDENDS_CALENDAR_LINK__.format(actual_param), request_type='json')
