@@ -35,7 +35,7 @@ class MOEXParser():
     return self.sort_tickers_data(tickers_data)
   
   def sort_tickers_data(self, tickers_data):
-    sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])] )
+    sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])][0] )
     return dict(sorted_data)
 
   def moex_indexes(self):
@@ -62,10 +62,11 @@ class MOEXParser():
     for index in indexes_dict:
       get_prices = lambda days: self.get_data(self.client.index_prices(index, { 'from': minus_today(days) }))
       prices = get_prices(max(days_ranges))
-      indexes_dict[index]['changes'] = {}
-      for days in days_ranges:
-        indexes_dict[index]['changes'][days] = self.__changes__(prices, days)
-    
+      indexes_dict[index] = {
+        **indexes_dict[index],
+        'changes': { days:self.__changes__(prices, days) for days in days_ranges }
+      }
+
     return self.sort_tickers_data(indexes_dict)
   
   def securities_list(self, index):
@@ -73,14 +74,13 @@ class MOEXParser():
 
   def __changes__(self, prices, days):
     prices = prices[-days:]
+    value = sum([float(row['@VALUE']) for row in prices])
     low = min([float(row['@LOW']) for row in prices])
     high = max([float(row['@HIGH']) for row in prices])
     last_close = float(prices[-1]['@CLOSE'])
     changes = [round((1 - low/last_close) * 100, 2), round(-(1-last_close/high) * 100, 2)]
-    if changes[0] > abs(changes[1]):
-      return changes[0]
-    else:
-      return changes[1]
+    percent_change = changes[0] if changes[0] > abs(changes[1]) else changes[1]
+    return [percent_change, int(value)]
     
   def get_data(self, response, data_position = 0):
     try:
