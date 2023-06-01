@@ -16,6 +16,9 @@ def date(date_argument):
 def today():
   return datetime.today().date()
 
+def today_str():
+  return today().strftime('%Y-%m-%d')
+
 def minus_days(date, days):
   return date - timedelta(days=days)
 
