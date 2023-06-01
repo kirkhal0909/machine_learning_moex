@@ -1,11 +1,13 @@
 from app.helpers.dates import minus_today
 from app.helpers.dictionaries import first_key
 from app.api.bcs.bcs import BCS
+from app.api.smart_lab.smart_lab import SmartLab
 
 class MOEXParser():
   def __init__(self, client):
     self.client = client
     self.bcs = BCS()
+    self.smart_lab = SmartLab()
     self.__cache__ = {}
 
   def today_prices(self):
@@ -33,9 +35,17 @@ class MOEXParser():
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
       tickers_data[ticker] = { 
         'changes': {}, 
-        'level': self.level_by_ticker(ticker),
-        **self.bcs.parser.ticker_data(ticker)
+        'level': self.level_by_ticker(ticker)
       }
+      external_functions = [self.bcs.parser.ticker_data, self.smart_lab.parser.reports]
+      for external_fucntion in external_functions:
+        try:
+          tickers_data[ticker] = {
+            **tickers_data[ticker],
+            **external_fucntion(ticker)
+          }
+        except:
+          None
       for days in days_ranges:
         tickers_data[ticker]['changes'][days] = self.__changes__(prices, days)
       days = first_key(tickers_data[ticker]['changes'])
