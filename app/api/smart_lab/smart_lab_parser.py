@@ -20,13 +20,9 @@ class SmartLabParser():
           ] for row in table.findAll('tr')
         ] for table in soup_tables
       ]
-      indexes_tables = [
-        [ tables[0][0].index(name) for name in ['Тикер', 'Чистая прибыль', 'Изм,  % к/к', 'Изм,  % г/г', 'отчет', 'дата публикации']],
-        [ tables[1][0].index(name) for name in ['Название', 'Чистая прибыль', 'Изм,  % к/к', 'Изм,  % г/г', 'отчет', 'дата публикации']]
-      ]
+      indexes_table = [1, -7, -6, -5, -4, -1]
       self.__report_data__ = {}
       for pos_table in range(2):
-        indexes_table = indexes_tables[pos_table]
         for row in tables[pos_table]:
           self.__report_data__[row[indexes_table[0]]] = {
             'profit': row[indexes_table[1]],
