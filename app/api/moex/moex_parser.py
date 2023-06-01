@@ -31,7 +31,11 @@ class MOEXParser():
     tickers_data = {}
     for ticker in tickers:
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
-      tickers_data[ticker] = { 'changes': {}, **self.bcs.parser.ticker_data(ticker) }
+      tickers_data[ticker] = { 
+        'changes': {}, 
+        'level': self.level_by_ticker(ticker),
+        **self.bcs.parser.ticker_data(ticker)
+      }
       for days in days_ranges:
         tickers_data[ticker]['changes'][days] = self.__changes__(prices, days)
       days = first_key(tickers_data[ticker]['changes'])
@@ -44,6 +48,26 @@ class MOEXParser():
   def sort_tickers_data(self, tickers_data):
     sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])][0] )
     return dict(sorted_data)
+  
+  def level_by_ticker(self, ticker):
+    try:
+      self.__levels__
+    except:
+      self.__levels__ = {}
+      try:
+        rows = self.client.csv_listing()
+      except:
+        return None
+      index_list = rows[0].index('LIST_SECTION')
+      index_ticker = rows[0].index('TRADE_CODE')
+      for row in rows[1:]:
+        self.__levels__[row[index_ticker]] = { 
+          'Первый уровень': 1, 
+          'Второй уровень': 2, 
+          'Третий уровень': 3 
+        }.get(row[index_list])
+      
+    return self.__levels__.get(ticker)
 
   def moex_indexes(self):
     start = 0

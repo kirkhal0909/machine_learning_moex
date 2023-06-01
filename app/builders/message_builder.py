@@ -14,14 +14,14 @@ class Message():
       message += '\n\n'
       for ticker in data['tickers']:
         data_ticker = data['tickers'][ticker]
-        message += "   {}{}".format(ticker, ' {}                   дивиденды: {}% ({}) {}\n'.format(
+        message += "   {} {}{}".format(data_ticker['level'], ticker, ' {}                   дивиденды: {}% ({}) {}\n'.format(
             data_ticker.get('mark_highlight'), 
             data_ticker.get('percent'), 
             data_ticker.get('last_buy_day'), 
             Message.format_long_number(data_ticker.get('dividend_value'))) if data_ticker.get('percent') else '\n'
           )
         for day in data_ticker['changes']:
-          message += "    {}: {}% {}\n".format(day, data_ticker['changes'][day][0], Message.format_long_number(data_ticker['changes'][day][1]))
+          message += "      {}: {}% {}\n".format(day, data_ticker['changes'][day][0], Message.format_long_number(data_ticker['changes'][day][1]))
       message += '\n-----------------------'
       messages.append(message)
         

@@ -34,7 +34,7 @@ class Client():
       return response.json()
     elif request_type == 'csv':
       csv_file = StringIO(response.content.decode('cp1251'))
-      return [row for row in csv.reader(csv_file)]
+      return [row for row in csv.reader(csv_file, delimiter=';')]
     else:
       return response.content
   
