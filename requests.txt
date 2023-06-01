@@ -1,3 +1,0 @@
-urllib
-curl_cffi
-xmltodict

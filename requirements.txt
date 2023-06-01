@@ -1,0 +1,3 @@
+curl_cffi
+xmltodict
+bs4

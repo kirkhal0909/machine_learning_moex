@@ -35,6 +35,8 @@ class Client():
     elif request_type == 'csv':
       csv_file = StringIO(response.content.decode('cp1251'))
       return [row for row in csv.reader(csv_file, delimiter=';')]
+    elif request_type == 'html':
+      return response.text
     else:
       return response.content
   
