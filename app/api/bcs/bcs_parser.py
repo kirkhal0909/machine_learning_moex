@@ -13,8 +13,8 @@ class BCSParser():
       }
     return tickers
   
-  def ticker_data(self, ticker, actual=True):
-    return self.dividends_data().get(ticker) or {}
+  def ticker_data(self, ticker):
+    return self.dividends_data().get(ticker) or self.dividends_data(False).get(ticker) or {}
   
   def __cut_date__(self, date):
     if date:
