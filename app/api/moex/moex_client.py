@@ -8,12 +8,10 @@ class MOEXClient(Client):
   TICKERS_BY_INDEX = 'https://iss.moex.com/iss/statistics/engines/stock/markets/index/analytics/{}/tickers'
   MOEX_NEWS_LINK = 'https://iss.moex.com/iss/sitenews.xml?start={}'
 
-  CSV_LISTING_LEVELS = 'https://www.moex.com/ru/listing/securities-list-csv.aspx?type=2'
-
   __FILE_CACHE__ = 'cache/moex.pickle'
 
   def stocks_prices_today(self, params = {}):
-    return self.get(self.STOCKS_LIST_URL, params, cache = False)
+    return self.get(self.STOCKS_LIST_URL, params, cache = True)
   
   def stock_prices(self, security, params = {}):
     return self.get(self.STOCKS_HISTORY_URL + '/' + security, params)
@@ -26,9 +24,6 @@ class MOEXClient(Client):
   
   def securities_list(self, index):
     return self.get(self.TICKERS_BY_INDEX.format(index), { 'date': minus_today(1) })
-  
-  def csv_listing(self):
-    return self.get(self.CSV_LISTING_LEVELS, request_type='csv')
   
   def prices_today(self):
     return self.get()

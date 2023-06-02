@@ -15,27 +15,38 @@ class MOEXParser():
     data_info = self.get_data(response, 0)
     data_trade = self.get_data(response, 1)
     stocks = {}
-    pos = 0
+    pos = 1
     while pos < len(data_info):
-      stocks[data_info[pos]['@SECID']] = {
-        'name': data_info[pos]['@SHORTNAME'],
-        'open': data_trade[pos]['@OPEN'],
-        'close': data_trade[pos]['@LAST'],
-        'high': data_trade[pos]['@HIGH'],
-        'low': data_trade[pos]['@LOW'],
-        'change': data_trade[pos]['@CHANGE'],
-        'capitalization': data_trade[pos]['@ISSUECAPITALIZATION']
-      }
+      if data_trade[pos]['@OPEN']:
+        stocks[data_info[pos]['@SECID']] = {
+          'name': data_info[pos]['@SHORTNAME'],
+          'open': data_trade[pos]['@OPEN'],
+          'close': data_trade[pos]['@LAST'],
+          'high': data_trade[pos]['@HIGH'],
+          'low': data_trade[pos]['@LOW'],
+          'change': data_trade[pos]['@CHANGE'],
+          'capitalization': data_trade[pos]['@ISSUECAPITALIZATION'],
+          'level': data_info[pos]['@LISTLEVEL']
+        }
       pos += 1
     return stocks
   
-  def stocks_prices(self, tickers, days_ranges = [7, 14, 30, 90]):
+  def stocks_prices(self, tickers=['all'], days_ranges = [7, 14, 30, 90]):
     tickers_data = {}
+    today_prices = self.today_prices()
+    if tickers == ['all']:
+      tickers = list(today_prices.keys())[1:]
     for ticker in tickers:
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
       tickers_data[ticker] = { 
         'changes': {}, 
-        'level': self.level_by_ticker(ticker)
+        **(today_prices.get(ticker) or {}),
+        'dates': [row['@TRADEDATE'] for row in prices],
+        'open': [row['@OPEN'] for row in prices],
+        'close': [row['@CLOSE'] for row in prices],
+        'high': [row['@HIGH'] for row in prices],
+        'low': [row['@LOW'] for row in prices],
+        'volume': [row['@VOLUME'] for row in prices]
       }
       external_functions = [self.bcs.parser.ticker_data, self.smart_lab.parser.reports]
       for external_fucntion in external_functions:
@@ -58,26 +69,6 @@ class MOEXParser():
   def sort_tickers_data(self, tickers_data):
     sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])][0] )
     return dict(sorted_data)
-  
-  def level_by_ticker(self, ticker):
-    try:
-      self.__levels__
-    except:
-      self.__levels__ = {}
-      try:
-        rows = self.client.csv_listing()
-      except:
-        return None
-      index_list = rows[0].index('LIST_SECTION')
-      index_ticker = rows[0].index('TRADE_CODE')
-      for row in rows[1:]:
-        self.__levels__[row[index_ticker]] = { 
-          'Первый уровень': 1, 
-          'Второй уровень': 2, 
-          'Третий уровень': 3 
-        }.get(row[index_list])
-      
-    return self.__levels__.get(ticker)
 
   def moex_indexes(self):
     start = 0
@@ -115,6 +106,9 @@ class MOEXParser():
 
   def __changes__(self, prices, days):
     prices = prices[-days:]
+    for row in prices:
+      if row['@HIGH'] == '':
+        return 0
     value = sum([float(row['@VALUE']) for row in prices])
     low = min([float(row['@LOW']) for row in prices])
     high = max([float(row['@HIGH']) for row in prices])

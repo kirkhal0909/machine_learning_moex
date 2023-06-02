@@ -7,9 +7,7 @@ class Message():
     messages = []
     for index in indexes:
       data = indexes[index]
-      message = Message.format_long_number(data['capitalization']) + '\n'
-      message += " {} - {}".format(index, data['name'])
-      message += '\n\n'
+      message = "{} - {} {}\n".format(index, data['name'], Message.format_long_number(data['capitalization']))
       for day in data['changes']:
         message += " {}: {}% {}\n".format(day, data['changes'][day][0], Message.format_long_number(data['changes'][day][1]))
       message += '\n\n'
@@ -17,14 +15,20 @@ class Message():
         data_ticker = data['tickers'][ticker]
         if data_ticker.get('report'):
           message += "   {}\n".format(Message.report_info(data_ticker))
-        message += "   {} {}{}".format(data_ticker['level'], ticker, ' {}                   дивиденды: {}% ({}) {}\n'.format(
+        message += "   {} {} {} {} {}".format(
+          data_ticker['level'], 
+          ticker,
+          Message.format_long_number(data_ticker.get('capitalization')) if data_ticker.get('capitalization') else '', 
+          data_ticker.get('name'), ' {}                   дивиденды: {}% ({}) {}\n'.format(
             data_ticker.get('mark_highlight'), 
             data_ticker.get('percent'), 
             data_ticker.get('last_buy_day'), 
-            Message.format_long_number(data_ticker.get('dividend_value'))) if data_ticker.get('percent') else '\n'
-          )
+            Message.format_long_number(data_ticker.get('dividend_value'))
+          ) if data_ticker.get('percent') else '\n'
+        )
         for day in data_ticker['changes']:
           message += "      {}: {}% {}\n".format(day, data_ticker['changes'][day][0], Message.format_long_number(data_ticker['changes'][day][1]))
+        message += '\n'
       message += '\n-----------------------'
       messages.append(message)
         
