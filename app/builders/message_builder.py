@@ -1,4 +1,5 @@
 from app.helpers.dictionaries import first_key
+from app.helpers.dates import date
 
 class Message():
   @staticmethod
@@ -71,4 +72,12 @@ class Message():
         data['percent'],
         Message.report_info(data.get('data_ticker'))
       )
+    return message
+  
+  @staticmethod
+  def reports(data):
+    message = ''
+    sorted_data = dict(sorted(data.items(), key=lambda data_reports:date(data_reports[1]['report_date'])))
+    for ticker in sorted_data:
+      message += '{} {}\n'.format(ticker.ljust(5), Message.report_info(data[ticker]))
     return message

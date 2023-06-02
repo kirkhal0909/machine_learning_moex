@@ -5,8 +5,10 @@ class SmartLabParser():
   def __init__(self, client) -> None:
     self.client = client
 
-  def reports(self, ticker):
+  def reports(self, ticker = 'all'):    
     try:
+      if ticker == 'all':
+        return self.__report_data__
       return self.__report_data__.get(ticker)
     except:
       response = self.client.reports()
@@ -23,7 +25,8 @@ class SmartLabParser():
       indexes_table = [1, -7, -6, -5, -4, -1]
       self.__report_data__ = {}
       for pos_table in range(2):
-        for row in tables[pos_table]:
+        for pos_row in range(1, len(tables[pos_table]), 1):
+          row = tables[pos_table][pos_row]
           self.__report_data__[row[indexes_table[0]]] = {
             'profit': row[indexes_table[1]],
             'changes_quarter': row[indexes_table[2]] if len(row[indexes_table[2]]) > 1 else None,
@@ -32,5 +35,8 @@ class SmartLabParser():
             'report_date': row[indexes_table[5]],
           }
 
-    return self.__report_data__.get(ticker)
+    if ticker == 'all':
+      return self.__report_data__
+    else:
+      return self.__report_data__.get(ticker)
     
