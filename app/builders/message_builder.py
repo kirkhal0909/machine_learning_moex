@@ -91,14 +91,29 @@ class Message():
     changes = {}
     for ticker in data:
       if data[ticker]['false_breakout'][-1]:
-        close_right = float(data[ticker]['close'][-1])
-        close_left = float(data[ticker]['close'][-2])
-        if close_left < close_right:
-          changes[ticker] = (1 - close_left / close_right) * 100
-        else:
-          changes[ticker] = -(1 - close_right / close_left) * 100
+        changes[ticker] = Message.changes_next(data[ticker], -2)
 
     changes = dict(sorted(changes.items(), key=lambda data:data[1]))
     for ticker in changes:  
       message += "{} {} breakout {}%\n".format(data[ticker].get('level'), ticker, round(changes[ticker], 2))
+    return message
+  
+  def changes_next(data_ticker, position_left):
+    if len(data_ticker['close']) <= position_left:
+      return 0
+    close_left = float(data_ticker['close'][position_left])
+    close_right = float(data_ticker['close'][position_left + 1])
+    if close_left < close_right:
+      return (1 - close_left / close_right) * 100
+    else:
+      return -(1 - close_right / close_left) * 100
+  
+  def sequence_false_breakouts(data):
+    message = ''
+    for ticker in data:
+      message += "{} {}".format(data[ticker]['level'], ticker)
+      for position in range(len(data[ticker])):
+        if data[ticker]['false_breakout'][position]:
+          message +=  " {};".format(data[ticker]['dates'][position])
+      message += '\n'
     return message

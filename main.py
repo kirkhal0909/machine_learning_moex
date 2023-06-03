@@ -19,6 +19,8 @@ message_reports = Message.reports(SmartLab().parser.reports())
 print(message_reports)
 message_false_breakouts = Message.false_breakoutes(stocks_prices)
 print()
+print(Message.sequence_false_breakouts(stocks_prices))
+print()
 print(message_false_breakouts)
 
 file_output = open("_info/{}.txt".format(today_str()), 'w')
