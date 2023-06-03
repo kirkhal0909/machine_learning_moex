@@ -85,3 +85,20 @@ class Message():
     for ticker in sorted_data:
       message += '{} {}\n'.format(ticker.ljust(5), Message.report_info(data[ticker]))
     return message
+
+  def false_breakoutes(data):
+    message = ''
+    changes = {}
+    for ticker in data:
+      if data[ticker]['false_breakout'][-1]:
+        close_right = float(data[ticker]['close'][-1])
+        close_left = float(data[ticker]['close'][-2])
+        if close_left < close_right:
+          changes[ticker] = (1 - close_left / close_right) * 100
+        else:
+          changes[ticker] = -(1 - close_right / close_left) * 100
+
+    changes = dict(sorted(changes.items(), key=lambda data:data[1]))
+    for ticker in changes:  
+      message += "{} {} breakout {}%\n".format(data[ticker].get('level'), ticker, round(changes[ticker], 2))
+    return message

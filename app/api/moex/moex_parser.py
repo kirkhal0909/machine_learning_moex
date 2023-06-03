@@ -46,7 +46,8 @@ class MOEXParser():
         'close': [row['@CLOSE'] for row in prices],
         'high': [row['@HIGH'] for row in prices],
         'low': [row['@LOW'] for row in prices],
-        'volume': [row['@VOLUME'] for row in prices]
+        'volume': [row['@VOLUME'] for row in prices],
+        'false_breakout': self.__false_breakout__(prices)
       }
       external_functions = [self.bcs.parser.ticker_data, self.smart_lab.parser.reports]
       for external_fucntion in external_functions:
@@ -65,6 +66,26 @@ class MOEXParser():
         tickers_data[ticker]['dividend_value'] = dividend_value
         tickers_data[ticker]['mark_highlight'] = '✓' if dividend_value > 400_000_000 else '' 
     return self.sort_tickers_data(tickers_data)
+  
+  def __false_breakout__(self, prices):
+    breakouts = [False]
+    candle = lambda pos:[
+      float(prices[pos]['@LOW']),
+      sorted(
+        [float(prices[pos]['@OPEN']), float(prices[pos]['@CLOSE'])]
+      ), 
+      float(prices[pos]['@HIGH'])
+    ]
+    indents = lambda candle:all([ candle[1][0] - candle[0] > 0, candle[2] - candle[1][1] > 0])
+    for pos in range(1, len(prices)-1, 1):
+      if prices[pos]['@LOW'] != '' and prices[pos+1]['@LOW'] != '':
+        left_candle = candle(pos)
+        right_candle = candle(pos+1)
+        candle_in = right_candle[1][0] >= left_candle[1][0] and right_candle[1][1] <= left_candle[1][1]
+        breakouts.append(candle_in and indents(left_candle) and indents(right_candle))
+      else:
+        breakouts.append(False)
+    return breakouts
 
   def sort_tickers_data(self, tickers_data):
     sorted_data = sorted((tickers_data.items()), key=lambda ticker:ticker[1]['changes'][first_key(ticker[1]['changes'])][0] )
