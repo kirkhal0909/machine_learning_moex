@@ -1,9 +1,12 @@
 from app.helpers.dates import minus_today
+from app.api.banks.ru_cb.bank_cb import BankСb
+from app.api.banks.usa_federal_reserve.newyorkfred_api import NewyorkfredAPI
 import pandas as pd
 
 class MOEXTensorflowData():
   def __init__(self, client):
     self.client = client
+    self.banks = [BankСb(), NewyorkfredAPI()]
 
   def get_data(self, response, data_position = 0):
     try:
@@ -13,24 +16,28 @@ class MOEXTensorflowData():
         return None
       return response['document']['data'][data_position]['rows']['row']
 
-  def prepare_dataframe(self, ticker):
+  def prepare_dataframe(self, ticker, days_mean=30):
     data_by_dates = self.stocks_prices_all_period(ticker)
-    dataframe = pd.json_normalize([data_by_dates[key] for key in sorted(data_by_dates.keys())])
-    dataframe['close_avg_30'] = dataframe.close.ewm(com = 30, adjust = False).mean(numeric_only=True)
-    dataframe['imoex_close_avg_30'] = dataframe.imoex_close.ewm(com = 30, adjust = False).mean(numeric_only=True)
-    return dataframe
+    dataframe = pd.json_normalize([data_by_dates[key] for key in sorted(data_by_dates.keys())]).dropna()
+    dataframe['close_avg_30'] = dataframe.close.ewm(com = days_mean, adjust = False).mean(numeric_only=True)
+    dataframe['imoex_close_avg_30'] = dataframe.imoex_close.ewm(com = days_mean, adjust = False).mean(numeric_only=True)
+    return dataframe[days_mean:]
 
   def stocks_prices_all_period(self, ticker):
     data_by_dates = {}
     days = 0
     get_date = lambda prices_row: prices_row.get('@TRADEDATE') or prices_row.get('@SYSTIME').split(' ')[0]
+    get_index = lambda index, days: self.get_data(self.client.index_prices(index, { 'from': minus_today(days) }), 0)
     prices = [row for row in self.get_data(self.client.stocks_prices_today(), 1) if row['@SECID'] == ticker]
 
     while not data_by_dates.get(get_date(prices[0])):
-      imoex = self.get_data(self.client.index_prices('IMOEX', { 'from': minus_today(days) }), 0)
+      imoex = get_index('IMOEX', days)
+      if days == 0 and imoex == None:
+        imoex = get_index('IMOEX', 1)
       for row in prices:
         if row['@OPEN']:
-          data_by_dates[get_date(row)] = {
+          date = get_date(row)
+          data_by_dates[date] = {
             'open': float(row['@OPEN']),
             'close': float(row.get('@CLOSE') or row.get('@MARKETPRICE')),
             'high': float(row['@HIGH']),
@@ -38,8 +45,13 @@ class MOEXTensorflowData():
             'volume': float(row.get('@VOLUME') or row['@VOLTODAY']),
             'value_traded': float(row.get('@MP2VALTRD') or row['@VALTODAY']),
           }
+          for bank in self.banks:
+            try:
+              data_by_dates[date]["key_rate_{}".format(bank.__class__.__name__)] = bank.key_rate_by(date)
+            except:
+              print('Some error with key rate bank {}'.format(bank.__class__.__name__))
       for row in [imoex] if imoex.__class__ == dict else imoex:
-        if data_by_dates.get(get_date(row)):
+        if data_by_dates.get(get_date(row), {}):
           data_by_dates[get_date(row)] = {
             **data_by_dates.get(get_date(row)),
             'imoex_open': float(row.get('@OPEN')),
