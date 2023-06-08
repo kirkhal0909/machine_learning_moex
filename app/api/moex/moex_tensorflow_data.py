@@ -4,9 +4,10 @@ from app.api.banks.usa_federal_reserve.newyorkfred_api import NewyorkfredAPI
 import pandas as pd
 
 class MOEXTensorflowData():
-  def __init__(self, client):
+  def __init__(self, client, input_length = 7):
     self.client = client
     self.banks = [BankСb(), NewyorkfredAPI()]
+    self.input_length = input_length
 
   def get_data(self, response, data_position = 0):
     try:
@@ -15,6 +16,20 @@ class MOEXTensorflowData():
       if response['document']['data'][data_position]['rows'] == None:
         return None
       return response['document']['data'][data_position]['rows']['row']
+
+  def get_x_y(self, ticker):
+    dataframe = self.prepare_dataframe(ticker)
+    X = []
+    Y = dataframe.close.shift(-1).dropna()[self.input_length - 1:].values
+
+    normalized_dataframe = self.normalize_dataframe(dataframe)
+
+    for pos in range(self.input_length, len(normalized_dataframe), 1):
+      X.append(normalized_dataframe[pos - self.input_length: pos])
+
+    last_sequence = normalized_dataframe[-self.input_length:]
+
+    return X, Y, last_sequence, normalized_dataframe
 
   def prepare_dataframe(self, ticker, days_mean=30):
     data_by_dates = self.stocks_prices_all_period(ticker)
