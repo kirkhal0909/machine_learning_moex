@@ -1,4 +1,5 @@
 from app.helpers.dates import minus_today
+import pandas as pd
 
 class MOEXTensorflowData():
   def __init__(self, client):
@@ -12,6 +13,13 @@ class MOEXTensorflowData():
         return None
       return response['document']['data'][data_position]['rows']['row']
 
+  def prepare_dataframe(self, ticker):
+    data_by_dates = self.stocks_prices_all_period(ticker)
+    dataframe = pd.json_normalize([data_by_dates[key] for key in sorted(data_by_dates.keys())])
+    dataframe['close_avg_30'] = dataframe.close.ewm(com = 30, adjust = False).mean(numeric_only=True)
+    dataframe['imoex_close_avg_30'] = dataframe.imoex_close.ewm(com = 30, adjust = False).mean(numeric_only=True)
+    return dataframe
+
   def stocks_prices_all_period(self, ticker):
     data_by_dates = {}
     days = 0
@@ -21,24 +29,25 @@ class MOEXTensorflowData():
     while not data_by_dates.get(get_date(prices[0])):
       imoex = self.get_data(self.client.index_prices('IMOEX', { 'from': minus_today(days) }), 0)
       for row in prices:
-        data_by_dates[get_date(row)] = {
-          'open': row['@OPEN'],
-          'close': row.get('@CLOSE') or row.get('@MARKETPRICE'),
-          'high': row['@HIGH'],
-          'low': row['@LOW'],
-          'volume': row.get('@VOLUME') or row['@VOLTODAY'],
-          'value_traded': row.get('@MP2VALTRD') or row['@VALTODAY'],
-        }
+        if row['@OPEN']:
+          data_by_dates[get_date(row)] = {
+            'open': float(row['@OPEN']),
+            'close': float(row.get('@CLOSE') or row.get('@MARKETPRICE')),
+            'high': float(row['@HIGH']),
+            'low': float(row['@LOW']),
+            'volume': float(row.get('@VOLUME') or row['@VOLTODAY']),
+            'value_traded': float(row.get('@MP2VALTRD') or row['@VALTODAY']),
+          }
       for row in [imoex] if imoex.__class__ == dict else imoex:
         if data_by_dates.get(get_date(row)):
           data_by_dates[get_date(row)] = {
             **data_by_dates.get(get_date(row)),
-            'imoex_open': row.get('@OPEN'),
-            'imoex_close': row.get('@CLOSE'),
-            'imoex_high': row.get('@HIGH'),
-            'imoex_low': row.get('@LOW'),
-            'imoex_value': row.get('@VALUE'),
-            'imoex_capitalization': row.get('@CAPITALIZATION')
+            'imoex_open': float(row.get('@OPEN')),
+            'imoex_close': float(row.get('@CLOSE')),
+            'imoex_high': float(row.get('@HIGH')),
+            'imoex_low': float(row.get('@LOW')),
+            'imoex_value': float(row.get('@VALUE')),
+            'imoex_capitalization': float(row.get('@CAPITALIZATION'))
           }
       days += 90
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(days) }), 1)
