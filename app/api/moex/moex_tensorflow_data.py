@@ -23,6 +23,9 @@ class MOEXTensorflowData():
     dataframe['imoex_close_avg_30'] = dataframe.imoex_close.ewm(com = days_mean, adjust = False).mean(numeric_only=True)
     return dataframe[days_mean:]
 
+  def normalize_dataframe(self, dataframe, round_value = 4):
+    return round((dataframe - dataframe.min()) / (dataframe.max() - dataframe.min()), round_value)
+
   def stocks_prices_all_period(self, ticker):
     data_by_dates = {}
     days = 0
