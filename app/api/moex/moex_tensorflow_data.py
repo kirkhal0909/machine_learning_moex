@@ -2,6 +2,7 @@ from app.helpers.dates import minus_today
 from app.api.banks.ru_cb.bank_cb import BankСb
 from app.api.banks.usa_federal_reserve.newyorkfred_api import NewyorkfredAPI
 import pandas as pd
+import numpy as np
 
 class MOEXTensorflowData():
   def __init__(self, client, input_length = 7):
@@ -29,7 +30,7 @@ class MOEXTensorflowData():
 
     last_sequence = normalized_dataframe[-self.input_length:]
 
-    return X, Y, last_sequence, normalized_dataframe
+    return np.array(X), np.array(Y), np.array([last_sequence]), normalized_dataframe
 
   def prepare_dataframe(self, ticker, days_mean=30):
     data_by_dates = self.stocks_prices_all_period(ticker)
