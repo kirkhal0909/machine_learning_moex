@@ -51,8 +51,11 @@ class MOEXTensorflowData():
 
     while not data_by_dates.get(get_date(prices[0])):
       imoex = get_index('IMOEX', days)
-      if days == 0 and imoex == None:
-        imoex = get_index('IMOEX', 1)
+      if days == 0:
+        minus_day = 1
+        while imoex == None:
+          imoex = get_index('IMOEX', minus_day)
+          minus_day += 1
       for row in prices:
         if row['@OPEN']:
           date = get_date(row)

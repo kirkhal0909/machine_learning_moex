@@ -8,7 +8,6 @@ class MOEXParser():
     self.client = client
     self.bcs = BCS()
     self.smart_lab = SmartLab()
-    self.__cache__ = {}
 
   def today_prices(self):
     response = self.client.stocks_prices_today()
@@ -30,7 +29,7 @@ class MOEXParser():
         }
       pos += 1
     return stocks
-  
+
   def stocks_prices(self, tickers=['all'], days_ranges = [7, 14, 30, 90]):
     tickers_data = {}
     today_prices = self.today_prices()
@@ -38,8 +37,8 @@ class MOEXParser():
       tickers = list(today_prices.keys())[1:]
     for ticker in tickers:
       prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(max(days_ranges)) }), 1)
-      tickers_data[ticker] = { 
-        'changes': {}, 
+      tickers_data[ticker] = {
+        'changes': {},
         **(today_prices.get(ticker) or {}),
         'dates': [row['@TRADEDATE'] for row in prices],
         'open': [row['@OPEN'] for row in prices],
@@ -64,16 +63,16 @@ class MOEXParser():
       if tickers_data[ticker].get('percent'):
         dividend_value = round(tickers_data[ticker]['changes'][days][1] / 100 * tickers_data[ticker].get('percent'), 2)
         tickers_data[ticker]['dividend_value'] = dividend_value
-        tickers_data[ticker]['mark_highlight'] = '✓' if dividend_value > 400_000_000 else '' 
+        tickers_data[ticker]['mark_highlight'] = '✓' if dividend_value > 400_000_000 else ''
     return self.sort_tickers_data(tickers_data)
-  
+
   def __false_breakout__(self, prices):
     breakouts = [False]
     candle = lambda pos:[
       float(prices[pos]['@LOW']),
       sorted(
         [float(prices[pos]['@OPEN']), float(prices[pos]['@CLOSE'])]
-      ), 
+      ),
       float(prices[pos]['@HIGH'])
     ]
     indents = lambda candle:all([ candle[1][0] - candle[0] >= 0, candle[2] - candle[1][1] >= 0])
@@ -82,7 +81,7 @@ class MOEXParser():
         left_candle = candle(pos)
         right_candle = candle(pos+1)
         candle_in = right_candle[1][0] >= left_candle[1][0] and right_candle[1][1] <= left_candle[1][1]
-        breakouts.append(candle_in and indents(left_candle) and indents(right_candle))
+        breakouts.append(candle_in)# and indents(left_candle) and indents(right_candle))
       else:
         breakouts.append(False)
     return breakouts
@@ -108,9 +107,9 @@ class MOEXParser():
           }
       start += 100
       data = get_indexes(start)
-    
+
     return indexes
-  
+
   def indexes_changes(self, indexes_dict, days_ranges = [7, 14, 30, 90]):
     for index in indexes_dict:
       get_prices = lambda days: self.get_data(self.client.index_prices(index, { 'from': minus_today(days) }))
@@ -121,7 +120,7 @@ class MOEXParser():
       }
 
     return self.sort_tickers_data(indexes_dict)
-  
+
   def securities_list(self, index):
     return [row['@ticker'] for row in self.get_data(self.client.securities_list(index))]
 
@@ -137,7 +136,7 @@ class MOEXParser():
     changes = [round((1 - low/last_close) * 100, 2), round(-(1-last_close/high) * 100, 2)]
     percent_change = changes[0] if changes[0] > abs(changes[1]) else changes[1]
     return [percent_change, int(value)]
-    
+
   def get_data(self, response, data_position = 0):
     try:
       return response['document']['data']['rows']['row']
