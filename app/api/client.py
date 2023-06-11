@@ -21,10 +21,10 @@ class Client():
       return response
 
     print(" GET {} {}".format(link, params))
-    
+
     link_params = urllib.parse.urlencode(params)
     link_params = "?{}".format(link_params) if link_params else link_params
-    response = requests.get(link + link_params)
+    response = requests.get(link + link_params, timeout=60)
     content = self.__content__(response, request_type)
     self.write_cache(link, params, content)
     return self.fetch_cache(link, params)

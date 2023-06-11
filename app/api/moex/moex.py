@@ -6,4 +6,4 @@ class MOEX():
   def __init__(self):
     self.client = MOEXClient()
     self.parser = MOEXParser(self.client)
-    self.tensorflow_data = MOEXTensorflowData(self.client)
+    self.tensorflow_data = MOEXTensorflowData(self.client, self.parser)

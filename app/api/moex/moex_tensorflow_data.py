@@ -5,8 +5,9 @@ import pandas as pd
 import numpy as np
 
 class MOEXTensorflowData():
-  def __init__(self, client, input_length = 7):
+  def __init__(self, client, parser, input_length = 7):
     self.client = client
+    self.parser = parser
     self.banks = [BankСb(), NewyorkfredAPI()]
     self.input_length = input_length
 
@@ -17,6 +18,18 @@ class MOEXTensorflowData():
       if response['document']['data'][data_position]['rows'] == None:
         return None
       return response['document']['data'][data_position]['rows']['row']
+
+  def get_x_y_all(self):
+    tickers = list(self.parser.today_prices().keys())
+    x_all = []
+    y_all = []
+    last_sequences = {}
+    for ticker in tickers:
+      x, y, last_sequence, _normalized_dataframe = self.get_x_y(ticker)
+      x_all += list(x)
+      y_all += list(y)
+      last_sequences[ticker] = last_sequence
+    return np.array(x_all), np.array(y_all), last_sequences
 
   def get_x_y(self, ticker):
     dataframe = self.prepare_dataframe(ticker)
@@ -65,7 +78,9 @@ class MOEXTensorflowData():
     get_index = lambda index, days: self.get_data(self.client.index_prices(index, { 'from': minus_today(days) }), 0)
     prices = [row for row in self.get_data(self.client.stocks_prices_today(), 1) if row['@SECID'] == ticker]
 
-    while not data_by_dates.get(get_date(prices[0])):
+    last_date = None
+    while last_date != get_date(prices[0]):
+      last_date = get_date(prices[0])
       imoex = get_index('IMOEX', days)
       if days == 0:
         minus_day = 1
