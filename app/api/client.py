@@ -14,6 +14,7 @@ class Client():
   __FILE_CACHE__ = 'cache/client_cache.pickle'
   def __init__(self) -> None:
     self.__cache__ = self.read_cache()
+    self.__cache_key__ = minus_today(0)
 
   def get(self, link, params = {}, cache = True, request_type='xml'):
     response = self.fetch_cache(link, params)
@@ -45,17 +46,17 @@ class Client():
   def fetch_cache(self, link, params):
     params = json.dumps(params)
     try:
-      return self.__cache__[minus_today(0)][link + ' + ' + params]
+      return self.__cache__[self.__cache_key__][link + ' + ' + params]
     except:
       return None
 
   def write_cache(self, link, params, value):
     params = json.dumps(params)
     try:
-      self.__cache__[minus_today(0)]
+      self.__cache__[self.__cache_key__]
     except:
-      self.__cache__ = { minus_today(0): {}}
-    self.__cache__[minus_today(0)][link + ' + ' + params] = value
+      self.__cache__ = { self.__cache_key__: {}}
+    self.__cache__[self.__cache_key__][link + ' + ' + params] = value
     with open(self.__FILE_CACHE__, 'wb') as handle:
       pickle.dump(self.__cache__, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
