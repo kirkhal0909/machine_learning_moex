@@ -23,7 +23,7 @@ class MOEXTensorflowData():
     X = []
     Y = dataframe.close.shift(-1).dropna()[self.input_length - 1:].values
 
-    normalized_dataframe = self.normalize_dataframe(dataframe)
+    normalized_dataframe = dataframe#self.normalize_dataframe(dataframe)
 
     for pos in range(self.input_length, len(normalized_dataframe), 1):
       X.append(normalized_dataframe[pos - self.input_length: pos])
@@ -37,7 +37,23 @@ class MOEXTensorflowData():
     dataframe = pd.json_normalize([data_by_dates[key] for key in sorted(data_by_dates.keys())]).dropna()
     dataframe['close_avg_30'] = dataframe.close.ewm(com = days_mean, adjust = False).mean(numeric_only=True)
     dataframe['imoex_close_avg_30'] = dataframe.imoex_close.ewm(com = days_mean, adjust = False).mean(numeric_only=True)
+    for column_prefix in ['close', 'imoex_close']:
+      column = column_prefix + '_avg_30'
+      temporary_column = np.array(dataframe[column])
+      main_column = np.array(dataframe[column_prefix])
+      for pos in range(len(temporary_column)):
+        temporary_column[pos] = self.normalize_percent(temporary_column[pos], main_column[pos])
+      dataframe[column] = temporary_column
+    for column in set(dataframe.keys()) - set(['imoex_close_avg_30', 'close_avg_30', 'key_rate_NewyorkfredAPI', 'key_rate_BankСb', 'imoex_capitalization', 'imoex_value', 'value_traded', 'value_traded']):
+      temporary_column = np.array(dataframe[column])
+      for pos in range(len(temporary_column) - 1, 0, -1):
+        temporary_column[pos] = self.normalize_percent(temporary_column[pos], temporary_column[pos - 1])
+      temporary_column[0] = None
+      dataframe[column] = temporary_column
     return dataframe[days_mean:]
+
+  def normalize_percent(self, value1, value2):
+    return (value1 / value2)
 
   def normalize_dataframe(self, dataframe, round_value = 4):
     return round((dataframe - dataframe.min()) / (dataframe.max() - dataframe.min()), round_value)

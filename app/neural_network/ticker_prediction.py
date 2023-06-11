@@ -7,7 +7,7 @@ from keras.layers import Dense, LSTM, Dropout
 class TickerPrediction():
   __INPUT_LENGTH__ = 7
   __BATCH_SIZE__ = 8
-  __EPOCHS__ = 80
+  __EPOCHS__ = 8
 
   def __init__(self) -> None:
     self.moex = MOEX()
