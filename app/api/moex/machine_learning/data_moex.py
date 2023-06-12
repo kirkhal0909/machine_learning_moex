@@ -77,7 +77,7 @@ class DataMoex():
         days += 90
         prices = self.get_data(self.client.stock_prices(ticker, { 'from': minus_today(days) }), 1)
 
-      dataframe = pd.json_normalize([data_by_dates[key] for key in sorted(data_by_dates.keys())])
+      dataframe = pd.json_normalize([{ 'date': key, **data_by_dates[key] } for key in sorted(data_by_dates.keys())])
       dataframe.to_csv(file_path)
     return dataframe
 
