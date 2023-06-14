@@ -2,6 +2,24 @@ import math
 import numpy as np
 
 class Dataframe():
+  def __init__(self, data_moex) -> None:
+    self.data_moex = data_moex
+    self.traded_null_count_skip = 200
+
+  def get_dataframes(self, ticker):
+    dataframes = []
+    if ticker == 'ALL':
+      tickers = self.data_moex.tickers_list()
+    else:
+      tickers = [ticker]
+    for ticker in tickers:
+      dataframe_ticker = self.data_moex.stocks_prices_all_period(ticker)
+      nulls = (len(dataframe_ticker) - np.count_nonzero(dataframe_ticker.value_traded))
+      if nulls < self.traded_null_count_skip:
+        dataframe_normalized = self.normalize(dataframe_ticker)
+        dataframes.append(dataframe_normalized)
+    return dataframes
+
   def normalize(self, dataframe):
     dataframe = self.remove_index_and_data(dataframe)
     dataframe = self.remove_top_nan(dataframe)

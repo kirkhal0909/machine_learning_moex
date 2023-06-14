@@ -2,4 +2,3 @@
 _info/*.txt
 cache/*.pickle
 predictions/*.csv
-_historical/*.csv
