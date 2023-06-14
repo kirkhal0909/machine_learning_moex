@@ -9,7 +9,7 @@ class DataMoex():
   def __init__(self, client, parser) -> None:
     self.client = client
     self.parser = parser
-    self.__DATA_FOLDER__ = '_historical'
+    self.__DATA_FOLDER__ = '_tickers_history'
     self.banks = [BankСb(), NewyorkfredAPI()]
 
   def save_all_prices(self):
