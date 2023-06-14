@@ -1,7 +1,7 @@
 import numpy as np
 
 class DataFit():
-  def get_x_y(dataframe, x_range=30):
+  def get_x_y(self, dataframe, x_range=30):
     dataframe = dataframe.copy()
     y = np.array(dataframe.tomorrow_close[x_range - 1:])
     dataframe = dataframe.drop(columns=['tomorrow_close'])
