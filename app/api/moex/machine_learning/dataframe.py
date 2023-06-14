@@ -14,7 +14,10 @@ class Dataframe():
     return dataframe.copy().iloc[: , 2:]
 
   def remove_top_nan(self, dataframe):
-    without_top = dataframe.copy()[len(dataframe) - list(dataframe.imoex_low.isnull())[:-1][::-1].index(True) - 1:]
+    nulls = list(dataframe.imoex_low.isnull())[:-1][::-1]
+    if True not in nulls:
+      return dataframe
+    without_top = dataframe.copy()[len(dataframe) - nulls.index(True) - 1:]
     return without_top
 
   def add_tomorrow_close(self, dataframe):
