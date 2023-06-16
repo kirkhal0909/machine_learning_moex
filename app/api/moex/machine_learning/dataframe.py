@@ -26,7 +26,7 @@ class Dataframe():
     dataframe = self.classify_prices(dataframe)
     dataframe = self.classify_volumes(dataframe)
     dataframe = self.add_tomorrow_close(dataframe)
-    return dataframe[:-1].dropna()
+    return dataframe[1:-1].dropna()
 
   def remove_index_and_data(self, dataframe):
     return dataframe.copy().iloc[: , 2:]
