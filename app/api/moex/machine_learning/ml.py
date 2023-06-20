@@ -12,6 +12,9 @@ class ML():
 
   def fit(self, ticker='ALL'):
     x, y = self.data_fit.get_x_y(self.dataframe.get_dataframes(ticker))
-    y_scaled = self.data_fit.scale(y)
-    model = self.model.fit(x, y_scaled)
+    model = self.model.fit(x, y)
     return x, y, model
+
+  def predict(self, x):
+    y_scalled = self.model.model().predict(x)
+    return self.data_fit.unscale(y_scalled)

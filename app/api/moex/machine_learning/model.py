@@ -9,7 +9,7 @@ class Model():
     self.__model_path__ = 'models/moex_v{}.h5'.format(model_version)
     self.__model_version__ = model_version
 
-  def model(self, input_shape):
+  def model(self, input_shape=None):
     if os.path.exists(self.__model_path__):
       return keras.models.load_model(self.__model_path__)
 

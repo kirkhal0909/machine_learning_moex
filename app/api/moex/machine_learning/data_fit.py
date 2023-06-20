@@ -5,7 +5,7 @@ import os
 
 class DataFit():
   def __init__(self) -> None:
-    self.__scale_range__ = (-10, 10)
+    self.__scale_range__ = (0, 1)
     self.__scaler_path__ = 'models/scaler_{}_{}.pkl'.format(self.__scale_range__[0], self.__scale_range__[1])
     self.scaler = self.load_or_create_scaler()
 
@@ -22,7 +22,9 @@ class DataFit():
       y += list(dataframe.tomorrow_close[x_range - 1:])
       dataframe = dataframe.drop(columns=['tomorrow_close'])
       x += [windowed for windowed in dataframe.rolling(window=x_range)][x_range - 1:]
-    return np.array(x), np.array(y).reshape(len(y), 1)
+    y_scalled = self.scale(np.array(y).reshape(len(y), 1))
+    x_scalled = np.array(x).reshape(-1, 1).reshape(len(x), len(x[0]), x[0].shape[1] )
+    return x_scalled, y_scalled
 
   def scale(self, data_series):
     self.scaler = self.scaler.fit(data_series)
