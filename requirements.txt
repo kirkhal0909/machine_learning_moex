@@ -2,3 +2,4 @@ requests
 curl_cffi
 xmltodict
 bs4
+ta-lib

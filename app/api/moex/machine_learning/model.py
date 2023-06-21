@@ -27,7 +27,7 @@ class Model():
 
     if self.__model_version__ == 1:
       neurons1 = self.config['model_neurons1'] or 128
-      neurons2 = self.config['model_neurons2'] or (neurons1 * ( 2 / 3 ))
+      neurons2 = self.config['model_neurons2'] or int(neurons1 * ( 2 / 3 ))
       model.add(LSTM(neurons1, return_sequences=True, input_shape=input_shape ))
       model.add(Dropout(0.3))
       model.add(LSTM(neurons2, return_sequences=False))
