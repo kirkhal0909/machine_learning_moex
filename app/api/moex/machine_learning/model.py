@@ -3,6 +3,7 @@ from keras.layers import Dense, LSTM, Dropout, Flatten
 import keras
 from keras.callbacks import ModelCheckpoint
 import os
+import shutil
 
 class Model():
   def __init__(self, model_version = 1, config = {}) -> None:
@@ -18,14 +19,16 @@ class Model():
   def set_config(self, config):
     self.config = config
 
-  def model(self, input_shape=None):
-    if os.path.exists(self.__model_path__()) and self.config['load_model'] != False:
+  def model(self, input_shape=None, rewrite_model = False):
+    if os.path.exists(self.__model_path__()) and self.config['load_model'] != False and rewrite_model == False:
       return keras.models.load_model(self.__model_path__())
 
     model = Sequential()
 
     neurons1 = self.config['model_neurons1'] or 128
     neurons2 = self.config['model_neurons2'] or int(neurons1 * ( 2 / 3 ))
+    if neurons2 < 1:
+      neurons2 = 1
     if self.config['model_type'] == 'LSTM':
       model.add(LSTM(neurons1, return_sequences=True, input_shape=input_shape ))
       model.add(Dropout(0.3))
@@ -43,16 +46,19 @@ class Model():
 
     return model
 
+  def copy(self, label):
+    return shutil.copy(self.__model_path__(), 'models/anomalies/moex_v{}_{}.h5'.format(self.config['model_type'], label))
+
   def __model_path__(self):
     return 'models/moex_v{}.h5'.format(self.config['model_type'])
 
   def fit(self, x_train, y_train, batch_size = 128, epochs = 64, rewrite_model = False):
     if rewrite_model:
-      self.__model__ = self.model(x_train[0].shape)
+      self.__model__ = self.model(x_train[0].shape, rewrite_model)
     try:
       self.__model__
     except AttributeError:
-      self.__model__ = self.model(x_train[0].shape)
+      self.__model__ = self.model(x_train[0].shape, rewrite_model)
     self.__model__.compile(optimizer = keras.optimizers.Adam(learning_rate=0.001), loss='mean_squared_error')
     # es = EarlyStopping(monitor='val_loss', min_delta=1e-10, patience=10, verbose=1)
     # rlr = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=10, verbose=1)

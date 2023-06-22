@@ -27,9 +27,9 @@ class ML():
     self.update_configs(config)
     self.__last__ = {}
 
-  def fit(self, ticker='ALL'):
+  def fit(self, ticker='ALL', rewrite_model = True):
     x, y = self.read_x_y(ticker)
-    model = self.model.fit(x, y, epochs=self.config['epochs'], rewrite_model = True)
+    model = self.model.fit(x, y, epochs=self.config['epochs'], rewrite_model = rewrite_model)
     return x, y, model
 
   def read_x_y(self, ticker):

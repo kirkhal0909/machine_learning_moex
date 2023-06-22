@@ -19,8 +19,10 @@ class DataFit():
     x_range = x_range or self.config['input_range']
     y = []
     x = []
-    for dataframe_normalized in dataframes:
-      dataframe = dataframe_normalized.copy()
+    for pos in range(len(dataframes)):
+      if pos % 10 == 0:
+        print("{} / {}".format(pos, len(dataframes)))
+      dataframe = dataframes[pos].copy()
       y += list(dataframe.tomorrow_close[x_range - 1:])
       dataframe = dataframe.drop(columns=['tomorrow_close'])
       x += [windowed for windowed in dataframe.rolling(window=x_range)][x_range - 1:]
