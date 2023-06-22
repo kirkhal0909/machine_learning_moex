@@ -54,8 +54,8 @@ class Dataframe():
   def output_less_more(self, dataframe):
     dataframe = dataframe.copy()
     dataframe.tomorrow_close = dataframe.tomorrow_close.fillna(0.0).apply(np.int64)
-    dataframe.tomorrow_close[dataframe.tomorrow_close >= 0] = 1
-    dataframe.tomorrow_close[dataframe.tomorrow_close < 0] = 0
+    dataframe.tomorrow_close[dataframe.tomorrow_close < dataframe.close] = 0
+    dataframe.tomorrow_close[dataframe.tomorrow_close >= dataframe.close] = 1
     return dataframe
 
   def classify_candle(self, dataframe):

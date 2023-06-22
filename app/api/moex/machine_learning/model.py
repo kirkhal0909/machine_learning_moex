@@ -46,7 +46,9 @@ class Model():
   def __model_path__(self):
     return 'models/moex_v{}.h5'.format(self.config['model_type'])
 
-  def fit(self, x_train, y_train, batch_size = 1024, epochs = 64):
+  def fit(self, x_train, y_train, batch_size = 128, epochs = 64, rewrite_model = False):
+    if rewrite_model:
+      self.__model__ = self.model(x_train[0].shape)
     try:
       self.__model__
     except AttributeError:
@@ -62,7 +64,7 @@ class Model():
       callbacks=[mcp],
       validation_split=0.2,
       verbose=1,
-      batch_size=batch_size,
+      batch_size=self.config['batch_size'],
       epochs=epochs
     )
 

@@ -3,9 +3,11 @@ from app.api.moex.machine_learning.data_fit import DataFit
 from app.api.moex.machine_learning.model import Model
 from app.api.moex.machine_learning.dataframe import Dataframe
 
-import numpy as np
+import pickle
 
 class ML():
+  __FILE_CACHE__ = 'cache/ML_x_y.pickle'
+
   def __init__(self, client, parser, model_version = 1, config = {}) -> None:
     self.config = {
       'model_type': 'LSTM',
@@ -16,6 +18,7 @@ class ML():
       'model_neurons2': None,
       'data_length': None,
       'load_model': True,
+      'batch_size': 64
     }
     self.data = DataMoex(client, parser)
     self.data_fit = DataFit()
@@ -25,14 +28,35 @@ class ML():
     self.__last__ = {}
 
   def fit(self, ticker='ALL'):
-    try:
-      x, y = self.__last__[ticker]['x'], self.__last__[ticker]['y']
-    except:
-      x, y = self.data_fit.get_x_y(self.dataframe.get_dataframes(ticker))
-      self.__last__[ticker] = { 'x': x, 'y': y }
+    x, y = self.data_fit.get_x_y(self.read_dataframes(ticker))
     x, y = x[:self.config['data_length']], y[:self.config['data_length']]
-    model = self.model.fit(x, y, epochs=self.config['epochs'])
+    model = self.model.fit(x, y, epochs=self.config['epochs'], rewrite_model = True)
     return x, y, model
+
+  def read_dataframes(self, ticker):
+    try:
+      return self.read_cache(ticker)
+    except:
+      dataframes = self.dataframe.get_dataframes(ticker)
+      self.write_cache(ticker, dataframes)
+    return dataframes
+
+  def read_cache(self, ticker = None):
+    with open(self.__FILE_CACHE__, 'rb') as handle:
+      try:
+        data = pickle.load(handle)
+        if ticker == None:
+          return data
+        else:
+          return data[ticker]
+      except:
+        return {}
+
+  def write_cache(self, ticker, dataframes):
+    with open(self.__FILE_CACHE__, 'wb') as handle:
+      data = self.read_cache()
+      data[ticker] = dataframes
+      pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
   def update_configs(self, config={}):
     self.config = {
