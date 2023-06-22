@@ -14,7 +14,7 @@ config = {
   'model_neurons1': 64,
   'model_neurons2': None,
   'data_length': None,
-  'load_model': False,
+  'load_model': True,
   'batch_size': 1024
 }
 
@@ -32,24 +32,21 @@ for model_neurons1 in [256]:#64, 16, 32, 64, 128, 256]:
     y_unscale = moex.ml.data_fit.unscale(y)
     y_p = moex.ml.predict(x)
 
-
     eq_direction = 0
+    for pos in range(len(y)):
+        positive1 = y_p[pos][1] > y_p[pos][0]
+        positive2 = y_unscale[pos][0] == 1
+        if positive1 == positive2:
+          eq_direction += 1
 
-    for pos in range(1, len(y), 1):
-        y_p_positive = y_p[pos][1] > y_p[pos][0]
-        if y_unscale[pos] <= y_unscale[pos-1] and not y_p_positive:
-            eq_direction += 1
-        elif y_unscale[pos] > y_unscale[pos-1] and y_p_positive:
-            eq_direction += 1
+    results = "{} / {}\n\n\n".format(eq_direction, len(y_unscale))
+    print(moex.ml.config)
+    print(results)
 
     results_file = open(filename, 'a')
 
     for key in config:
         results_file.write("{}: {}\n".format(key, config[key]))
-
-    results = "{} / {}\n\n\n".format(eq_direction, len(y_unscale))
-    print(moex.ml.config)
-    print(results)
 
     results_file.write(results)
     results_file.close()
