@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import joblib
 import os
@@ -14,7 +15,8 @@ class DataFit():
       return joblib.load(self.__scaler_path__)
     return MinMaxScaler(feature_range=self.__scale_range__)
 
-  def get_x_y(self, dataframes, x_range=30):
+  def get_x_y(self, dataframes, x_range=None):
+    x_range = x_range or self.config['input_range']
     y = []
     x = []
     for dataframe_normalized in dataframes:
@@ -22,8 +24,14 @@ class DataFit():
       y += list(dataframe.tomorrow_close[x_range - 1:])
       dataframe = dataframe.drop(columns=['tomorrow_close'])
       x += [windowed for windowed in dataframe.rolling(window=x_range)][x_range - 1:]
+      if self.config['model_type'] == 'Classification':
+        x = [pd.DataFrame(row).values  for row in x]
+
     y_scalled = self.scale(np.array(y).reshape(len(y), 1))
-    x_scalled = np.array(x).reshape(-1, 1).reshape(len(x), len(x[0]), x[0].shape[1] )
+    if self.config['model_type'] == 'Classification':
+      x_scalled = np.array(x).reshape(len(x), len(x[0]) )
+    else:
+      x_scalled = np.array(x).reshape(-1, 1).reshape(len(x), len(x[0]), x[0].shape[1] )
     return x_scalled, y_scalled
 
   def scale(self, data_series):

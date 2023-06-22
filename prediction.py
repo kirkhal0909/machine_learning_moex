@@ -1,12 +1,16 @@
+import numpy as np
+import pandas as pd
+
 from app.api.moex.moex import MOEX
 from app.helpers.dates import now
 
 moex = MOEX()
 
 config = {
-  'epochs': 1,
-  'normalization_type': 'candles', # or 'candles' or 'less_more'
-  'lstm_range': 30,
+  'model_type': 'Classification', # or 'LSTM'
+  'epochs': 10,
+  'normalization_type': 'candles', # or 'candles'
+  'input_range': 30,
   'model_neurons1': 64,
   'model_neurons2': None,
   'data_length': None,
@@ -16,10 +20,10 @@ config = {
 filename = "_info/_results_{}.txt".format(now())
 
 for model_neurons1 in [16, 32, 64, 128, 256]:
-  for lstm_range in [30, 24, 20, 16, 8]:
+  for input_range in [30, 24, 20, 16, 8]:
 
     config['model_neurons1'] = model_neurons1
-    config['lstm_range'] = lstm_range
+    config['input_range'] = input_range
 
     moex.ml.update_configs(config)
 
