@@ -15,12 +15,13 @@ config = {
   'model_neurons2': None,
   'data_length': None,
   'load_model': False,
+  'batch_size': 1024
 }
 
 filename = "_info/_results_{}.txt".format(now())
 
-for model_neurons1 in [16, 32, 64, 128, 256]:
-  for input_range in [30, 24, 20, 16, 8]:
+for model_neurons1 in [256]:#64, 16, 32, 64, 128, 256]:
+  for input_range in [16]:#, 30, 24, 20, 16, 8]:
 
     config['model_neurons1'] = model_neurons1
     config['input_range'] = input_range
@@ -34,11 +35,11 @@ for model_neurons1 in [16, 32, 64, 128, 256]:
 
     eq_direction = 0
 
-    for pos in range(len(y)):
+    for pos in range(1, len(y), 1):
         y_p_positive = y_p[pos][1] > y_p[pos][0]
-        if y_unscale[pos] <= 0 and not y_p_positive:
+        if y_unscale[pos] <= y_unscale[pos-1] and not y_p_positive:
             eq_direction += 1
-        elif y_unscale[pos] > 0 and y_p_positive:
+        elif y_unscale[pos] > y_unscale[pos-1] and y_p_positive:
             eq_direction += 1
 
     results_file = open(filename, 'a')

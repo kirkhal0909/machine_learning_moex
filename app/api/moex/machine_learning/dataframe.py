@@ -26,15 +26,16 @@ class Dataframe():
   def normalize(self, dataframe):
     dataframe = self.remove_index_and_data(dataframe)
     dataframe = self.remove_top_nan(dataframe)
-    dataframe = self.classify_prices(dataframe)
     if self.config.get('normalization_type') == 'candles':
       dataframe = self.select_columns(dataframe, ['open', 'close', 'high', 'low'])
       dataframe = self.classify_candle(dataframe)
       dataframe = self.add_tomorrow_close(dataframe)
-      dataframe = self.select_columns(dataframe, ['candle_classifier', 'tomorrow_close'])
       dataframe = self.output_less_more(dataframe)
+      dataframe = self.select_columns(dataframe, ['candle_classifier', 'tomorrow_close'])
     else:
+      #dataframe = self.classify_prices(dataframe)
       dataframe = self.classify_volumes(dataframe)
+      dataframe = self.select_columns(dataframe, ['open', 'close', 'high', 'low'])
       dataframe = self.add_tomorrow_close(dataframe)
     return dataframe[1:-1].dropna()
 
