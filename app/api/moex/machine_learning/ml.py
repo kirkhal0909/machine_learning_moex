@@ -17,7 +17,8 @@ class ML():
       'model_neurons2': None,
       'data_length': None,
       'load_model': True,
-      'batch_size': 64
+      'batch_size': 64,
+      'x_y_cache': False
     }
     self.cache = DataCache()
     self.data = DataMoex(client, parser)

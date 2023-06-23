@@ -9,7 +9,8 @@ class BankClient():
   __DATA__ = None
 
   def __init__(self):
-    self.data()
+    #self.data()
+    None
 
   def get(self, url):
     self.RESPONSE = requests.get(url)

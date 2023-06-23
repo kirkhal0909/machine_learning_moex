@@ -21,7 +21,8 @@ class DataCache():
       return {}
 
   def get(self, ticker, data_type = 'dataframe'):
-    return self.data_cache.get(self.key(ticker, data_type))
+    if self.config.get('x_y_cache'):
+      return self.data_cache.get(self.key(ticker, data_type))
 
   def write(self, data, ticker, data_type = 'dataframe'):
     with open(self.__FILE_CACHE__, 'wb') as handle:
@@ -29,5 +30,7 @@ class DataCache():
       pickle.dump(self.data_cache, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
   def key(self, ticker, data_type):
+    if data_type == 'dataframe':
+      return "{}_dataframe".format(ticker)
     config_block = { key:self.config[key] for key in self.__INCLUDE_KEYS__ }
     return "{}_{}_{}".format(data_type, ticker, str(config_block))

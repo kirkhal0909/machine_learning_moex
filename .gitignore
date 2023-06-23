@@ -3,3 +3,4 @@ _info/*.txt
 cache/*.pickle
 predictions/*.csv
 models/anomalies/*.h5
+_tickers_history

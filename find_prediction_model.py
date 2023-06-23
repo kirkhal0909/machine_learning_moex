@@ -14,11 +14,12 @@ config = {
   'model_neurons2': None,
   'data_length': None,
   'load_model': True,
-  'batch_size': 1024
+  'batch_size': 1024,
+  'x_y_cache': True
 }
 
-for input_range in range(32, 0, -1):
-  for model_neurons1 in range(1, 513, 1):
+for input_range in [12]:
+  for model_neurons1 in [128]:
     rewrite_model = True
     min_predicted = 999_999_999_999_999_999
     max_predicted = 0

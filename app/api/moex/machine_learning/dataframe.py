@@ -15,7 +15,10 @@ class Dataframe():
       tickers = self.data_moex.tickers_list()
     else:
       tickers = [ticker]
-    for ticker in tickers:
+    for pos in range(len(tickers)):
+      ticker = tickers[pos]
+      if pos % 10 == 0:
+        print(" get_dataframes {}/{}".format(pos, len(tickers)))
       dataframe_ticker = self.data_moex.stocks_prices_all_period(ticker)
       nulls = (len(dataframe_ticker) - np.count_nonzero(dataframe_ticker.value_traded))
       if nulls < self.traded_null_count_skip:
@@ -40,7 +43,8 @@ class Dataframe():
     return dataframe[1:-1].dropna()
 
   def remove_index_and_data(self, dataframe):
-    return dataframe.copy().iloc[: , 2:]
+    date_index = list(dataframe.columns).index('date')
+    return dataframe.copy().iloc[: , date_index:]
 
   def remove_top_nan(self, dataframe):
     nulls = list(dataframe.imoex_low.isnull())[:-1][::-1]
