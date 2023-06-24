@@ -15,7 +15,7 @@ config = {
   'data_length': None,
   'load_model': True,
   'batch_size': 1024,
-  'x_y_cache': True
+  'x_y_cache': False
 }
 
 for input_range in [12]:
@@ -23,13 +23,13 @@ for input_range in [12]:
     rewrite_model = True
     min_predicted = 999_999_999_999_999_999
     max_predicted = 0
-    for retries in range(10):
+    for retries in range(1):
       config['model_neurons1'] = model_neurons1
       config['input_range'] = input_range
 
       moex.ml.update_configs(config)
 
-      x, y, model = moex.ml.fit(rewrite_model=rewrite_model)
+      x, y, last_sequences, model = moex.ml.fit('SBER', rewrite_model=rewrite_model)
       rewrite_model = False
       y_unscale = moex.ml.data_fit.unscale(y)
       y_p = moex.ml.predict(x)

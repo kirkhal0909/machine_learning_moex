@@ -29,18 +29,17 @@ class ML():
     self.__last__ = {}
 
   def fit(self, ticker='ALL', rewrite_model = True):
-    x, y = self.read_x_y(ticker)
+    x, y, last_sequences = self.read_x_y_last_seq(ticker)
     model = self.model.fit(x, y, epochs=self.config['epochs'], rewrite_model = rewrite_model)
-    return x, y, model
+    return x, y, last_sequences, model
 
-  def read_x_y(self, ticker):
-    x, y = [self.cache.get(ticker, data) for data in ['x', 'y'] ]
+  def read_x_y_last_seq(self, ticker):
+    x, y, last_sequence = self.cache.get(ticker, 'x__y__last_sequence') or [None, None, None]
     if x is None or y is None:
-      x, y = self.data_fit.get_x_y(self.read_dataframes(ticker))
+      x, y, last_sequences = self.data_fit.get_x_y_last_seq(self.read_dataframes(ticker))
       x, y = x[:self.config['data_length']], y[:self.config['data_length']]
-      self.cache.write(x, ticker, 'x')
-      self.cache.write(y, ticker, 'y')
-    return x, y
+      self.cache.write([x, y, last_sequence], ticker, 'x__y__last_sequence')
+    return x, y, last_sequences
 
   def read_dataframes(self, ticker):
     dataframes = self.cache.get(ticker)

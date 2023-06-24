@@ -40,7 +40,7 @@ class Dataframe():
       dataframe = self.classify_volumes(dataframe)
       dataframe = self.select_columns(dataframe, ['open', 'close', 'high', 'low'])
       dataframe = self.add_tomorrow_close(dataframe)
-    return dataframe[1:-1].dropna()
+    return dataframe[1:]
 
   def remove_index_and_data(self, dataframe):
     date_index = list(dataframe.columns).index('date')
