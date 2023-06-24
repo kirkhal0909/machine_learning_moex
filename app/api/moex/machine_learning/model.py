@@ -53,10 +53,10 @@ class Model():
     return 'models/moex_v{}.h5'.format(self.config['model_type'])
 
   def fit(self, x_train, y_train, batch_size = 128, epochs = 64, rewrite_model = False):
-    if rewrite_model:
-      self.__model__ = self.model(x_train[0].shape, rewrite_model)
     try:
       self.__model__
+      if rewrite_model:
+        self.__model__ = self.model(x_train[0].shape, rewrite_model)
     except AttributeError:
       self.__model__ = self.model(x_train[0].shape, rewrite_model)
     self.__model__.compile(optimizer = keras.optimizers.Adam(learning_rate=0.001), loss='mean_squared_error')

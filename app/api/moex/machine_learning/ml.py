@@ -34,11 +34,11 @@ class ML():
     return x, y, last_sequences, model
 
   def read_x_y_last_seq(self, ticker):
-    x, y, last_sequence = self.cache.get(ticker, 'x__y__last_sequence') or [None, None, None]
+    x, y, last_sequences = self.cache.get(ticker, 'x__y__last_sequences') or [None, None, None]
     if x is None or y is None:
       x, y, last_sequences = self.data_fit.get_x_y_last_seq(self.read_dataframes(ticker))
       x, y = x[:self.config['data_length']], y[:self.config['data_length']]
-      self.cache.write([x, y, last_sequence], ticker, 'x__y__last_sequence')
+      self.cache.write([x, y, last_sequences], ticker, 'x__y__last_sequences')
     return x, y, last_sequences
 
   def read_dataframes(self, ticker):
